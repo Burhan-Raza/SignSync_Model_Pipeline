@@ -1,0 +1,77 @@
+16 words: [np.str_('asl_callonphone'), np.str_('asl_home'), np.str_('asl_hungry'), np.str_('asl_see'), np.str_('asl_sick'), np.str_('asl_time'), np.str_('asl_where'), np.str_('asl_yes'), np.str_('psl_assalam-o-alaikum'), np.str_('psl_excuseme'), np.str_('psl_goodbye'), np.str_('psl_goodmorning'), np.str_('psl_have_a_good_day'), np.str_('psl_hello'), np.str_('psl_water'), np.str_('psl_welldone')]
+train 1222  val 197  test 320
+epoch   1  loss 2.091  train acc 0.731  val acc 0.756
+epoch   2  loss 1.201  train acc 0.831  val acc 0.827
+epoch   3  loss 0.956  train acc 0.903  val acc 0.873
+epoch   4  loss 0.859  train acc 0.929  val acc 0.939
+epoch   5  loss 0.787  train acc 0.967  val acc 0.949
+epoch   6  loss 0.752  train acc 0.969  val acc 0.944
+epoch   7  loss 0.725  train acc 0.966  val acc 0.939
+epoch   8  loss 0.700  train acc 0.978  val acc 0.975
+epoch   9  loss 0.685  train acc 0.983  val acc 0.954
+epoch  10  loss 0.677  train acc 0.977  val acc 0.959
+epoch  11  loss 0.666  train acc 0.972  val acc 0.939
+epoch  12  loss 0.651  train acc 0.984  val acc 0.975
+epoch  13  loss 0.651  train acc 0.985  val acc 0.964
+epoch  14  loss 0.638  train acc 0.989  val acc 0.949
+epoch  15  loss 0.631  train acc 0.990  val acc 0.964
+epoch  16  loss 0.629  train acc 0.990  val acc 0.990
+epoch  17  loss 0.625  train acc 0.989  val acc 0.964
+epoch  18  loss 0.621  train acc 0.992  val acc 0.970
+epoch  19  loss 0.615  train acc 0.991  val acc 0.949
+epoch  20  loss 0.621  train acc 0.993  val acc 0.980
+epoch  21  loss 0.619  train acc 0.987  val acc 0.949
+epoch  22  loss 0.625  train acc 0.986  val acc 0.964
+epoch  23  loss 0.619  train acc 0.987  val acc 0.959
+epoch  24  loss 0.609  train acc 0.993  val acc 0.990
+epoch  25  loss 0.605  train acc 0.997  val acc 0.985
+epoch  26  loss 0.598  train acc 0.996  val acc 0.964
+epoch  27  loss 0.600  train acc 0.997  val acc 0.970
+epoch  28  loss 0.594  train acc 0.998  val acc 0.970
+epoch  29  loss 0.591  train acc 0.998  val acc 0.970
+epoch  30  loss 0.596  train acc 0.996  val acc 0.975
+epoch  31  loss 0.597  train acc 0.996  val acc 0.980
+early stop
+
+best val acc 0.990 | TEST acc 0.919
+clean train by language: all 0.990  psl 1.000  asl 0.980
+clean val   by language: all 0.990  psl 1.000  asl 0.976
+clean test  by language: all 0.919  psl 0.981  asl 0.857
+STRESS test by language: all 0.925  psl 0.987  asl 0.863
+STRESS val  by language: all 0.990  psl 1.000  asl 0.976
+confused across languages (clean test): none
+          asl_see -> predicted asl_time        x6
+        asl_where -> predicted asl_time        x4
+       asl_hungry -> predicted asl_time        x4
+        psl_hello -> predicted psl_goodbye     x3
+          asl_yes -> predicted asl_time        x3
+  asl_callonphone -> predicted asl_time        x3
+          asl_see -> predicted asl_where       x1
+        asl_where -> predicted asl_yes         x1
+C:\Users\Burhan Gujjar\Downloads\signsync_pipeline\signsync\train_gru.py:145: UserWarning: # 'dynamic_axes' is not recommended when dynamo=True, and may lead to 'torch._dynamo.exc.UserError: Constraints violated.' Supply the 'dynamic_shapes' argument instead if export is unsuccessful.
+  torch.onnx.export(model, torch.zeros(1, R.shape[1], n_feat), "sign_gru.onnx",
+W1106 13:14:38.368000 10000 Lib\site-packages\torch\onnx\_internal\exporter\_registration.py:107] torchvision is not installed. Skipping torchvision::nms
+W1106 13:14:38.370000 10000 Lib\site-packages\torch\onnx\_internal\exporter\_registration.py:107] torchvision is not installed. Skipping torchvision::roi_align
+W1106 13:14:38.370000 10000 Lib\site-packages\torch\onnx\_internal\exporter\_registration.py:107] torchvision is not installed. Skipping torchvision::roi_pool
+W1106 13:14:38.370000 10000 Lib\site-packages\torch\onnx\_internal\exporter\_registration.py:107] torchvision is not installed. Skipping torchvision::deform_conv2d
+C:\Users\Burhan Gujjar\Downloads\signsync_pipeline\.venv310\lib\site-packages\torch\_dynamo\utils.py:4415: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  return node.target(*args, **kwargs)  # type: ignore[operator]
+<eval_with_key>.1:6: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  _check_is_size = torch._check_is_size(item);  _check_is_size = None
+<eval_with_key>.1:7: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  _check_is_size_1 = torch._check_is_size(item, max = 59);  _check_is_size_1 = None
+<eval_with_key>.7:10: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  _check_is_size = torch._check_is_size(item);  _check_is_size = None
+<eval_with_key>.7:11: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  _check_is_size_1 = torch._check_is_size(item, max = 59);  _check_is_size_1 = None
+<eval_with_key>.9:6: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  _check_is_size = torch._check_is_size(item);  _check_is_size = None
+<eval_with_key>.9:7: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  _check_is_size_1 = torch._check_is_size(item, max = 59);  _check_is_size_1 = None
+<eval_with_key>.15:10: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  _check_is_size = torch._check_is_size(item);  _check_is_size = None
+<eval_with_key>.15:11: FutureWarning: _check_is_size will be removed in a future PyTorch release along with guard_size_oblivious.     Use _check(i >= 0) instead.
+  _check_is_size_1 = torch._check_is_size(item, max = 59);  _check_is_size_1 = None
+C:\Users\Burhan Gujjar\AppData\Local\Programs\Python\Python310\lib\contextlib.py:142: UserWarning: The tensor attributes self.gru._flat_weights[0], self.gru._flat_weights[1], self.gru._flat_weights[2], self.gru._flat_weights[3], self.gru._flat_weights[4], self.gru._flat_weights[5], self.gru._flat_weights[6], self.gru._flat_weights[7], self.gru._flat_weights[8], self.gru._flat_weights[9], self.gru._flat_weights[10], self.gru._flat_weights[11], self.gru._flat_weights[12], self.gru._flat_weights[13], self.gru._flat_weights[14], self.gru._flat_weights[15] were assigned during export. Such attributes must be registered as buffers using the `register_buffer` API (https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.register_buffer).
+  next(self.gen)
+saved gru_best.pt, labels.json, sign_gru.onnx

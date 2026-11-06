@@ -1,0 +1,98 @@
+16 words: [np.str_('asl_callonphone'), np.str_('asl_home'), np.str_('asl_hungry'), np.str_('asl_see'), np.str_('asl_sick'), np.str_('asl_time'), np.str_('asl_where'), np.str_('asl_yes'), np.str_('psl_assalam-o-alaikum'), np.str_('psl_excuseme'), np.str_('psl_goodbye'), np.str_('psl_goodmorning'), np.str_('psl_have_a_good_day'), np.str_('psl_hello'), np.str_('psl_water'), np.str_('psl_welldone')]
+train 1222  val 197  test 320  | augmentation copies: 6
+extratrees train clean acc 1.000   (augmented training copies 1.000)
+extratrees val   clean acc 0.949   stress (live-like) acc 0.949
+extratrees test  clean acc 0.872   stress (live-like) acc 0.897
+
+Per-word report - clean test (webcam source):
+                       precision    recall  f1-score   support
+
+      asl_callonphone       1.00      0.76      0.87        17
+             asl_home       0.67      0.80      0.73        20
+           asl_hungry       0.94      0.89      0.92        19
+              asl_see       0.88      0.71      0.79        21
+             asl_sick       0.81      0.65      0.72        20
+             asl_time       0.54      0.95      0.69        22
+            asl_where       0.94      0.73      0.82        22
+              asl_yes       0.83      0.75      0.79        20
+psl_assalam-o-alaikum       1.00      0.89      0.94        19
+         psl_excuseme       1.00      1.00      1.00        20
+          psl_goodbye       0.83      1.00      0.91        20
+      psl_goodmorning       1.00      1.00      1.00        20
+  psl_have_a_good_day       0.95      1.00      0.98        20
+            psl_hello       1.00      0.80      0.89        20
+            psl_water       1.00      1.00      1.00        20
+         psl_welldone       1.00      1.00      1.00        20
+
+             accuracy                           0.87       320
+            macro avg       0.90      0.87      0.88       320
+         weighted avg       0.90      0.87      0.88       320
+
+confusion (rows = true, cols = predicted):
+                      asl_callo  asl_home asl_hungr   asl_see  asl_sick  asl_time asl_where   asl_yes psl_assal psl_excus psl_goodb psl_goodm psl_have_ psl_hello psl_water psl_welld
+      asl_callonphone        13         0         0         1         0         3         0         0         0         0         0         0         0         0         0         0
+             asl_home         0        16         0         0         3         0         0         0         0         0         0         0         1         0         0         0
+           asl_hungry         0         0        17         0         0         2         0         0         0         0         0         0         0         0         0         0
+              asl_see         0         0         1        15         0         4         0         1         0         0         0         0         0         0         0         0
+             asl_sick         0         5         0         1        13         0         1         0         0         0         0         0         0         0         0         0
+             asl_time         0         0         0         0         0        21         0         1         0         0         0         0         0         0         0         0
+            asl_where         0         1         0         0         0         4        16         1         0         0         0         0         0         0         0         0
+              asl_yes         0         0         0         0         0         5         0        15         0         0         0         0         0         0         0         0
+psl_assalam-o-alaikum         0         2         0         0         0         0         0         0        17         0         0         0         0         0         0         0
+         psl_excuseme         0         0         0         0         0         0         0         0         0        20         0         0         0         0         0         0
+          psl_goodbye         0         0         0         0         0         0         0         0         0         0        20         0         0         0         0         0
+      psl_goodmorning         0         0         0         0         0         0         0         0         0         0         0        20         0         0         0         0
+  psl_have_a_good_day         0         0         0         0         0         0         0         0         0         0         0         0        20         0         0         0
+            psl_hello         0         0         0         0         0         0         0         0         0         0         4         0         0        16         0         0
+            psl_water         0         0         0         0         0         0         0         0         0         0         0         0         0         0        20         0
+         psl_welldone         0         0         0         0         0         0         0         0         0         0         0         0         0         0         0        20
+accuracy by language: all 0.872  psl 0.962  asl 0.783
+confused across languages: psl_assalam-o-alaikum -> asl_home x2, asl_home -> psl_have_a_good_day x1
+
+Per-word report - STRESS test:
+                       precision    recall  f1-score   support
+
+      asl_callonphone       1.00      0.76      0.87        17
+             asl_home       0.80      0.80      0.80        20
+           asl_hungry       0.94      0.89      0.92        19
+              asl_see       0.88      0.71      0.79        21
+             asl_sick       0.88      0.75      0.81        20
+             asl_time       0.54      0.95      0.69        22
+            asl_where       0.89      0.77      0.83        22
+              asl_yes       0.83      0.75      0.79        20
+psl_assalam-o-alaikum       1.00      1.00      1.00        19
+         psl_excuseme       1.00      1.00      1.00        20
+          psl_goodbye       0.95      1.00      0.98        20
+      psl_goodmorning       1.00      1.00      1.00        20
+  psl_have_a_good_day       1.00      1.00      1.00        20
+            psl_hello       1.00      0.95      0.97        20
+            psl_water       1.00      1.00      1.00        20
+         psl_welldone       1.00      1.00      1.00        20
+
+             accuracy                           0.90       320
+            macro avg       0.92      0.90      0.90       320
+         weighted avg       0.92      0.90      0.90       320
+
+confusion (rows = true, cols = predicted):
+                      asl_callo  asl_home asl_hungr   asl_see  asl_sick  asl_time asl_where   asl_yes psl_assal psl_excus psl_goodb psl_goodm psl_have_ psl_hello psl_water psl_welld
+      asl_callonphone        13         0         0         1         0         3         0         0         0         0         0         0         0         0         0         0
+             asl_home         0        16         0         0         2         1         1         0         0         0         0         0         0         0         0         0
+           asl_hungry         0         0        17         0         0         2         0         0         0         0         0         0         0         0         0         0
+              asl_see         0         0         1        15         0         4         0         1         0         0         0         0         0         0         0         0
+             asl_sick         0         3         0         1        15         0         1         0         0         0         0         0         0         0         0         0
+             asl_time         0         0         0         0         0        21         0         1         0         0         0         0         0         0         0         0
+            asl_where         0         1         0         0         0         3        17         1         0         0         0         0         0         0         0         0
+              asl_yes         0         0         0         0         0         5         0        15         0         0         0         0         0         0         0         0
+psl_assalam-o-alaikum         0         0         0         0         0         0         0         0        19         0         0         0         0         0         0         0
+         psl_excuseme         0         0         0         0         0         0         0         0         0        20         0         0         0         0         0         0
+          psl_goodbye         0         0         0         0         0         0         0         0         0         0        20         0         0         0         0         0
+      psl_goodmorning         0         0         0         0         0         0         0         0         0         0         0        20         0         0         0         0
+  psl_have_a_good_day         0         0         0         0         0         0         0         0         0         0         0         0        20         0         0         0
+            psl_hello         0         0         0         0         0         0         0         0         0         0         1         0         0        19         0         0
+            psl_water         0         0         0         0         0         0         0         0         0         0         0         0         0         0        20         0
+         psl_welldone         0         0         0         0         0         0         0         0         0         0         0         0         0         0         0        20
+accuracy by language: all 0.897  psl 0.994  asl 0.801
+confused across languages: none
+
+refit on all sources (train+val+test) for the live model
+saved -> baseline_model.joblib

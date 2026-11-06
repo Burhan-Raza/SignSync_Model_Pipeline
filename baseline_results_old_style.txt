@@ -1,0 +1,62 @@
+8 words: [np.str_('assalam-o-alaikum'), np.str_('excuseme'), np.str_('goodbye'), np.str_('goodmorning'), np.str_('have_a_good_day'), np.str_('hello'), np.str_('water'), np.str_('welldone')]
+train 634  val 113  test 159  | augmentation copies: 0
+extratrees train clean acc 1.000   (augmented training copies 1.000)
+extratrees val   clean acc 0.982   stress (live-like) acc 0.575
+extratrees test  clean acc 0.969   stress (live-like) acc 0.528
+
+Per-word report - clean test (webcam source):
+                   precision    recall  f1-score   support
+
+assalam-o-alaikum       0.95      1.00      0.97        19
+         excuseme       1.00      1.00      1.00        20
+          goodbye       0.83      1.00      0.91        20
+      goodmorning       1.00      1.00      1.00        20
+  have_a_good_day       1.00      1.00      1.00        20
+            hello       1.00      0.80      0.89        20
+            water       1.00      0.95      0.97        20
+         welldone       1.00      1.00      1.00        20
+
+         accuracy                           0.97       159
+        macro avg       0.97      0.97      0.97       159
+     weighted avg       0.97      0.97      0.97       159
+
+confusion (rows = true, cols = predicted):
+                  assal excus goodb goodm have_ hello water welld
+assalam-o-alaikum    19     0     0     0     0     0     0     0
+         excuseme     0    20     0     0     0     0     0     0
+          goodbye     0     0    20     0     0     0     0     0
+      goodmorning     0     0     0    20     0     0     0     0
+  have_a_good_day     0     0     0     0    20     0     0     0
+            hello     0     0     4     0     0    16     0     0
+            water     1     0     0     0     0     0    19     0
+         welldone     0     0     0     0     0     0     0    20
+accuracy by language: all 0.969
+
+Per-word report - STRESS test:
+                   precision    recall  f1-score   support
+
+assalam-o-alaikum       1.00      0.47      0.64        19
+         excuseme       0.25      0.95      0.39        20
+          goodbye       0.87      0.65      0.74        20
+      goodmorning       1.00      0.55      0.71        20
+  have_a_good_day       1.00      0.45      0.62        20
+            hello       1.00      0.25      0.40        20
+            water       1.00      0.45      0.62        20
+         welldone       0.38      0.45      0.41        20
+
+         accuracy                           0.53       159
+        macro avg       0.81      0.53      0.57       159
+     weighted avg       0.81      0.53      0.57       159
+
+confusion (rows = true, cols = predicted):
+                  assal excus goodb goodm have_ hello water welld
+assalam-o-alaikum     9    10     0     0     0     0     0     0
+         excuseme     0    19     0     0     0     0     0     1
+          goodbye     0     6    13     0     0     0     0     1
+      goodmorning     0     9     0    11     0     0     0     0
+  have_a_good_day     0    11     0     0     9     0     0     0
+            hello     0     0     2     0     0     5     0    13
+            water     0    11     0     0     0     0     9     0
+         welldone     0    11     0     0     0     0     0     9
+accuracy by language: all 0.528
+saved -> baseline_old_style.joblib

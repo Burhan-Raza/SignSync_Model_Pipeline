@@ -1,0 +1,25 @@
+downloading 960 sequences: callonphone 120, home 120, hungry 120, see 120, sick 120, time 120, where 120, yes 120
+  50/960
+  100/960
+  150/960
+  200/960
+  250/960
+  300/960
+  350/960
+  400/960
+  450/960
+  500/960
+  550/960
+  600/960
+  650/960
+  700/960
+  750/960
+  800/960
+  850/960
+  900/960
+  950/960
+downloaded 960, failed 0
+list of downloaded sequences -> asl-signs\train_selected.csv
+  500/960
+{'dropped: hands mostly missing / too short': 127, 'saved': 833}
+hand slots: left visible 30% of frames, right 45%  (PSL: left 19%, right 96% - if ASL is the other way round, re-run with --swap-hands)

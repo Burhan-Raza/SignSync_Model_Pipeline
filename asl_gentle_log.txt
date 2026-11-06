@@ -1,0 +1,4 @@
+selected 960, still missing 416
+12:44:53 429 after 0 files, waiting 300s
+12:49:54 429 after 0 files, waiting 300s
+12:54:55 429 after 0 files, waiting 300s
