@@ -30,15 +30,12 @@ landmarks for every frame, and a Conformer network classifies each sign.
 
 ## Results (4 test signers never seen in training)
 
-| Model | Input | Test accuracy |
-|---|---|---|
-| GRU | hands | 83.2% |
-| Conformer | hands | 85.2% |
-| **Conformer (final)** | **hands + face/body** | **85.3%** |
+| Train | Val | **Test** | Stress test |
+|---|---|---|---|
+| 97.5% | 96.8% | **85.3%** | 84.0% |
 
-Per signer, the final model scores 98%, 86%, 86% and 63%. Weakest signs: sad, fine, please, wait, happy.
-Only the final model is in this repository; the GRU and hands-only Conformer were trained on the same data and
-split for comparison. Details, per-sign numbers and limits: [asl20_conformer_face/RESULTS.md](asl20_conformer_face/RESULTS.md).
+Per test signer: 98%, 86%, 86% and 63%. Strongest signs: hello, bye, home, time; weakest: sad, fine, please,
+wait, happy. Details, per-sign numbers and limits: [asl20_conformer_face/RESULTS.md](asl20_conformer_face/RESULTS.md).
 
 ## Run it on a webcam
 
@@ -56,8 +53,7 @@ python ../live_predict.py --hold 2
   turns this off.
 - `S` saves the last sign and prints the top 3 answers, `Q` quits.
 
-`live_predict.py` and `predict.py` load `sign_conformer.onnx` from the folder you run them in (otherwise
-`sign_gru.onnx`); `--model` picks a file.
+`live_predict.py` and `predict.py` load `sign_conformer.onnx` from the folder you run them in; `--model` picks a file.
 
 ## Rebuild the data and train
 
@@ -66,7 +62,7 @@ pip install kaggle pandas pyarrow        # kaggle.json in ~/.kaggle, competition
 python download_asl.py --signs bye callonphone drink fine happy hello home hungry no please sad see sick sleep thankyou time wait water where yes --max-per-sign 1000
 python prepare_asl_body.py --out asl20_body.npz
 mkdir asl20_conformer_face && cd asl20_conformer_face
-python ../train_conformer.py --data ../asl20_body.npz --features body --epochs 80
+python ../train_conformer.py --data ../asl20_body.npz --epochs 80
 ```
 Kaggle limits per-file downloads (HTTP 429 after a few hundred files). Re-running `download_asl.py` continues
 where it stopped; for this project the files were zipped by a private Kaggle notebook and downloaded as one file.
@@ -79,10 +75,9 @@ where it stopped; for this project the files were zipped by a private Kaggle not
 | `predict.py` | Predict one recorded sign (`--seq-dir`) |
 | `body.py` | Face/body points: reading, trimming, mirroring, augmentation, features |
 | `common.py` | Hand landmark helpers (normalize, trim, mirror, augmentation) |
-| `train_conformer.py` | Train the Conformer (`--features hands` or `body`) |
-| `train_gru.py` | Train the GRU (comparison model) |
-| `download_asl.py`, `convert_asl.py`, `prepare_asl.py` | Download and convert Kaggle asl-signs (hands only) |
+| `train_conformer.py` | Train the Conformer |
+| `download_asl.py` | Download the Kaggle asl-signs files for the chosen signs |
+| `convert_asl.py` | Read hand points from a Kaggle parquet file (used by `body.py`) |
 | `prepare_asl_body.py` | Build the hands + face/body dataset |
-| `extract_landmarks.py` | MediaPipe Holistic landmark extraction |
-| `live_baseline.py`, `baseline_sklearn.py` | Classical (scikit-learn) baseline and sample recording (`--collect`) |
-| `asl20_conformer_face/` | **Final model** |
+| `extract_landmarks.py` | MediaPipe Holistic setup used by the live script |
+| `asl20_conformer_face/` | **The model** |

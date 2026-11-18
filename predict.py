@@ -15,9 +15,8 @@ from body import normalize_body, trim_body, FEAT_DIM, RAW_DIM
 
 
 def default_model_path(folder="."):
-    """The model in this folder: the Conformer if there is one, otherwise the GRU."""
-    conformer = os.path.join(folder, "sign_conformer.onnx")
-    return conformer if os.path.exists(conformer) else os.path.join(folder, "sign_gru.onnx")
+    """The model file in this folder."""
+    return os.path.join(folder, "sign_conformer.onnx")
 
 
 def load_model(onnx_path=None, labels_path="labels.json"):
@@ -48,7 +47,7 @@ if __name__ == "__main__":
     g.add_argument("--video"); g.add_argument("--seq-dir")
     ap.add_argument("--lang", choices=["psl", "asl", "both"], default="both",
                     help="which sign language may be predicted (same single model)")
-    ap.add_argument("--model", help="ONNX file (default: sign_conformer.onnx if present, else sign_gru.onnx)")
+    ap.add_argument("--model", help="ONNX file (default: sign_conformer.onnx in the current folder)")
     a = ap.parse_args()
     if a.video:
         from extract_landmarks import _holistic, read_frames, extract_from_frames

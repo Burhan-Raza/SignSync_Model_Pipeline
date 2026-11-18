@@ -7,8 +7,7 @@
 
     python live_predict.py --hold 2       # keep the answer on screen 2 s after the hands leave
 
-Loads sign_conformer.onnx from the current folder if it is there, otherwise sign_gru.onnx
-(--model picks a file).
+Loads sign_conformer.onnx from the current folder (--model picks a file).
 
 Default mode "sign": raise your hands and sign. The word appears while your hands are in the frame
 and disappears when you take them out of the frame. Each sign is read from its start, so holding
@@ -150,7 +149,7 @@ def main():
                         help="hide answers below this confidence (default 0.50; 0 = always show)")
     parser.add_argument("--hold", type=float, default=0.0,
                         help="sign mode: seconds the answer stays on screen after the hands leave (default 0)")
-    parser.add_argument("--model", help="ONNX file (default: sign_conformer.onnx if present, else sign_gru.onnx)")
+    parser.add_argument("--model", help="ONNX file (default: sign_conformer.onnx in the current folder)")
     parser.add_argument("--no-aspect-fix", action="store_true",
                         help="do not rescale webcam x to the training videos' image shape (input_aspect.txt)")
     args = parser.parse_args()

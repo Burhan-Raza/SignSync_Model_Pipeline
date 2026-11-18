@@ -8,7 +8,7 @@ No intermediate .npy files are written (that step alone takes about an hour for 
 
     python download_asl.py --signs <the 20 signs> --max-per-sign 1000          # parquet files
     python prepare_asl_body.py --out asl20_body.npz                            # this script
-    python train_conformer.py --data asl20_body.npz --features body --epochs 80
+    python train_conformer.py --data asl20_body.npz --epochs 80
 """
 import argparse
 import os

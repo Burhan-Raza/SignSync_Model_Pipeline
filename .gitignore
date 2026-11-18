@@ -1,18 +1,19 @@
-# Raw Kaggle files and their converted copies: several GB, can be downloaded again (see README).
-asl-signs/train_landmark_files/
+# Kaggle files and their converted copies: several GB, downloaded again with download_asl.py
+asl-signs/
+asl_data/
 asl_data20/
 asl_data_full/
 
 # Prepared datasets: rebuilt with prepare_asl_body.py (some are above GitHub's 100 MB per-file limit)
 *.npz
 
-# Models and files kept only on this computer (PSL work and earlier ASL comparison models)
+# Kept only on this computer: PSL work, earlier comparison models and their scripts, test recordings
 asl20_conformer/
 asl20_gru/
 psl20/
 backup_original/
 webcam_test/
-live_check/excuseme/
+live_check/
 live_capture_*.npy
 *.joblib
 /gru_best.pt
@@ -21,12 +22,14 @@ live_capture_*.npy
 /sign_gru.onnx.data
 /conformer_best.pt
 /prepare.py
+/prepare_asl.py
+/train_gru.py
+/baseline_sklearn.py
+/live_baseline.py
 baseline_results*.txt
 gru_results_psl_asl.txt
 conformer_results_psl_asl.txt
 *_log.txt
-!asl_download_log.txt
-!asl_gentle_log.txt
 
 # Python cache
 __pycache__/

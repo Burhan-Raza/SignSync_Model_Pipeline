@@ -1,17 +1,17 @@
-"""Train a small Conformer sign classifier, to compare with the GRU (train_gru.py).
+"""Train the ASL sign Conformer on hand + face/body landmarks (body.py).
 
 Idea from: Haque et al., "A Signer-Invariant Conformer and Multi-Scale Fusion Transformer for
 Continuous Sign Language Recognition", ICCV 2025 Workshops. That paper does continuous (sentence)
 recognition; this is a small Conformer encoder used as an ISOLATED sign classifier, so it is
 inspired by the paper, not a reproduction of it.
 
-Everything except the network is the same as train_gru.py: same .npz and split, training from X_raw
-with augment_raw + random mirror -> trim_active + normalize, same stress test, same reports.
+Training batches get fresh augmentation (zoom, shift, jitter, speed, cut ends, dropped hand frames, random
+mirror); val/test are only trimmed and normalized. A "stress" test re-runs val/test with augmentation.
 
-    python train_conformer.py --data psl_asl.npz --epochs 80
+    python prepare_asl_body.py --out asl20_body.npz
+    python train_conformer.py --data asl20_body.npz --epochs 80
 
-Saves: conformer_best.pt and sign_conformer.onnx (+ .data). labels.json is not touched: the class
-order comes from the same .npz, so the GRU's labels.json fits this model too.
+Saves (in the current folder): conformer_best.pt, sign_conformer.onnx (+ .data) and labels.json.
 """
 import argparse
 import math
@@ -19,12 +19,31 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-from common import cross_language_confusions
-from train_gru import prep_raw, augment_raw_batch, evaluate, print_lang_accuracy, export_onnx
-from body import prep_raw_body, augment_raw_batch_body
+import json
+from common import cross_language_confusions, lang_accuracy
+from body import prep_raw_body, augment_raw_batch_body, RAW_DIM
 
-FEATURES = {"hands": (prep_raw, augment_raw_batch),               # 126 hand numbers per frame
-            "body": (prep_raw_body, augment_raw_batch_body)}      # + face/body points (body.py), 165 per frame
+
+def evaluate(model, loader):
+    model.eval()
+    preds, ys = [], []
+    with torch.no_grad():
+        for xb, yb in loader:
+            preds.append(model(xb).argmax(1))
+            ys.append(yb)
+    p, y = torch.cat(preds).numpy(), torch.cat(ys).numpy()
+    return (p == y).mean(), p, y
+
+
+def print_lang_accuracy(title, p, y, words):
+    print(f"{title}: " + "  ".join(f"{k} {v:.3f}" for k, v in lang_accuracy(y, p, words).items()))
+
+
+def export_onnx(model, n_frames, n_feat, path="sign_conformer.onnx"):
+    """Export with a batch of 2 and a named batch dimension, so the ONNX model accepts any batch size."""
+    torch.onnx.export(model, torch.zeros(2, n_frames, n_feat), path,
+                      input_names=["landmarks"], output_names=["logits"], verbose=False,
+                      dynamic_shapes={"x": {0: torch.export.Dim("batch", min=1)}})
 
 
 class FeedForward(nn.Module):
@@ -93,7 +112,7 @@ class SignConformer(nn.Module):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default="data_prepared.npz")
+    ap.add_argument("--data", default="asl20_body.npz")
     ap.add_argument("--epochs", type=int, default=80)
     ap.add_argument("--batch", type=int, default=64)
     ap.add_argument("--lr", type=float, default=5e-4)
@@ -102,21 +121,20 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--d", type=int, default=128, help="model width")
     ap.add_argument("--blocks", type=int, default=3)
-    ap.add_argument("--features", choices=list(FEATURES), default="hands",
-                    help="hands: hand points only; body: hands + face/body points (needs a body .npz)")
     a = ap.parse_args()
     torch.manual_seed(a.seed); np.random.seed(a.seed)
 
     d = np.load(a.data)
     if "X_raw" not in d:
-        raise SystemExit("This .npz was made by the old prepare.py - re-run prepare.py to get X_raw.")
+        raise SystemExit("This .npz has no X_raw - build it with prepare_asl_body.py.")
     R, y, split, words = d["X_raw"].astype(np.float32), d["y"].astype(np.int64), d["split"], d["words"]
+    if R.shape[2] != RAW_DIM:
+        raise SystemExit(f"Expected {RAW_DIM} numbers per frame (hands + face/body); build the data with prepare_asl_body.py.")
     rng = np.random.default_rng(a.seed)
     mk = lambda x, s, sh: DataLoader(TensorDataset(torch.from_numpy(x), torch.from_numpy(y[split == s])),
                                      batch_size=a.batch, shuffle=sh)
     tr = mk(R[split == "train"], "train", True)
-    prep, aug_batch = FEATURES[a.features]
-    print(f"features: {a.features} ({R.shape[2]} raw numbers per frame)", flush=True)
+    prep, aug_batch = prep_raw_body, augment_raw_batch_body
     tr_clean = mk(prep(R[split == "train"]), "train", False)
     va, te = mk(prep(R[split == "val"]), "val", False), mk(prep(R[split == "test"]), "test", False)
     va_stress = mk(aug_batch(R[split == "val"], np.random.default_rng(1)), "val", False)
@@ -180,7 +198,8 @@ def main():
 
     model.eval()
     export_onnx(model, R.shape[1], n_feat, path="sign_conformer.onnx")
-    print("saved conformer_best.pt, sign_conformer.onnx")
+    json.dump({int(i): str(w) for i, w in enumerate(words)}, open("labels.json", "w"), indent=1)
+    print("saved conformer_best.pt, sign_conformer.onnx, labels.json")
 
 
 if __name__ == "__main__":

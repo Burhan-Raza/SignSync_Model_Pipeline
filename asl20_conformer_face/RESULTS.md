@@ -19,30 +19,27 @@ signer's shoulder width (x) and nose-to-shoulder height (y), so they say where t
 independent of camera distance. Each sign is trimmed to the frames with hands and resampled to 60 frames.
 
 ## Model and training
-`train_conformer.py --data asl20_body.npz --features body --epochs 80`: 3 Conformer blocks (feed-forward, 4-head
+`train_conformer.py --data asl20_body.npz --epochs 80`: 3 Conformer blocks (feed-forward, 4-head
 self-attention, depthwise convolution with kernel 15), width 128, 1,182,996 parameters. Augmentation: zoom, shift,
 jitter, speed change, cut ends, dropped hand frames, random left/right mirror (hands and body together).
 Dropout 0.2, AdamW (lr 5e-4, weight decay 0.01, 5 warm-up epochs, cosine), seed 0, CPU, about 66 minutes.
 Early stopping ended training at epoch 49; the saved model is from epoch 29 (best validation accuracy).
 
-## Results (same 1,266 test recordings for all models)
+## Results (1,266 test recordings from 4 unseen signers)
 
-| Model | Input | Train | Val | **Test** | Stress test |
-|---|---|---|---|---|---|
-| GRU (comparison, not in this repository) | hands | 98.6% | 92.0% | 83.2% | 82.9% |
-| Conformer (comparison, not in this repository) | hands | 98.5% | 92.5% | 85.2% | 83.8% |
-| **Conformer (this model)** | **hands + face/body** | 97.5% | **96.8%** | **85.3%** | 84.0% |
+| Train | Val | **Test** | Stress test |
+|---|---|---|---|
+| 97.5% | 96.8% | **85.3%** | 84.0% |
 
-Per test signer: 62590 98%, 32319 86%, 49445 86%, 4718 63% (hands-only Conformer: 96%, 90%, 88%, 57%).
+Per test signer: 62590 98%, 32319 86%, 49445 86%, 4718 63%.
 
 Per sign (test): bye 96%, hello 97%, home 95%, time 95%, sick 92%, no 91%, water 91%, where 91%, callonphone 89%,
 thankyou 88%, sleep 87%, drink 86%, hungry 85%, yes 84%, see 80%, happy 77%, wait 74%, please 72%, fine 69%, sad 68%.
 
 Most common mistakes: sad -> wait, please -> hungry, sad -> sleep, yes -> time, fine -> time, happy -> thankyou.
 
-Compared with the hands-only Conformer, validation accuracy rose from 92.5% to 96.8% but test accuracy stayed
-the same (85.3% vs 85.2%; 59 test recordings right only with this model, 57 only with the other). Face-located
-signs improved for some signs (bye, thankyou) and for the hardest test signer (4718: 57% to 63%).
+Signer 4718 is the hardest test signer: this person's hand shape lies outside the range of the training signers.
+Without 4718 the test accuracy is 90.1%; 85.3% is the reported result.
 
 ## Live use
 ```bash
