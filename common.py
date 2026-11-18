@@ -223,3 +223,30 @@ def cross_language_confusions(y_true, y_pred, words):
         if class_lang(a) and class_lang(b) and class_lang(a) != class_lang(b):
             pairs[(a, b)] = pairs.get((a, b), 0) + 1
     return sorted(((a, b, n) for (a, b), n in pairs.items()), key=lambda r: -r[2])
+
+
+def augment_strong(seq, rng):
+    """augment_raw plus changes that differ between SIGNERS rather than between cameras:
+    each hand rotated (+-15 deg) and resized (+-12%) around its own wrist, a fixed per-joint offset for the
+    whole sign (slightly different hand shape), and with p=0.3 one hand lost for 5-12 frames in a row.
+    Only for training (train_gru.py --aug strong); prediction never uses it."""
+    s = augment_raw(seq, rng).reshape(len(seq), 2, 21, 3).copy()
+    T = len(s)
+    pres = np.abs(s).sum(axis=(2, 3)) > 0
+    for h in range(2):
+        if not pres[:, h].any():
+            continue
+        a = np.deg2rad(rng.uniform(-15, 15))
+        rot = np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]], np.float32)
+        k = rng.uniform(0.88, 1.12)
+        wrist = s[:, h, :1, :2]
+        s[:, h, :, :2] = (s[:, h, :, :2] - wrist) @ rot.T * k + wrist
+        s[:, h, :, 2] *= k
+        s[:, h] += rng.normal(0, 0.004, size=(1, 21, 3)).astype(np.float32)
+        s[~pres[:, h], h] = 0.0
+    if rng.random() < 0.3:
+        h = rng.integers(0, 2)
+        n = int(rng.integers(5, 13))
+        f0 = int(rng.integers(0, max(1, T - n)))
+        s[f0:f0 + n, h] = 0.0
+    return s.reshape(T, 126).astype(np.float32)

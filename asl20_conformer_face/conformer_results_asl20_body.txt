@@ -1,0 +1,75 @@
+features: body (165 raw numbers per frame)
+20 words: [np.str_('bye'), np.str_('callonphone'), np.str_('drink'), np.str_('fine'), np.str_('happy'), np.str_('hello'), np.str_('home'), np.str_('hungry'), np.str_('no'), np.str_('please'), np.str_('sad'), np.str_('see'), np.str_('sick'), np.str_('sleep'), np.str_('thankyou'), np.str_('time'), np.str_('wait'), np.str_('water'), np.str_('where'), np.str_('yes')]
+train 4734  val 679  test 1266
+parameters: 1,182,996
+epoch   1  loss 2.632  train acc 0.480  val acc 0.554
+epoch   2  loss 1.684  train acc 0.783  val acc 0.845
+epoch   3  loss 1.212  train acc 0.843  val acc 0.869
+epoch   4  loss 1.078  train acc 0.859  val acc 0.906
+epoch   5  loss 1.024  train acc 0.883  val acc 0.929
+epoch   6  loss 0.969  train acc 0.865  val acc 0.888
+epoch   7  loss 0.934  train acc 0.894  val acc 0.925
+epoch   8  loss 0.899  train acc 0.907  val acc 0.906
+epoch   9  loss 0.875  train acc 0.916  val acc 0.885
+epoch  10  loss 0.881  train acc 0.913  val acc 0.919
+epoch  11  loss 0.844  train acc 0.929  val acc 0.923
+epoch  12  loss 0.839  train acc 0.922  val acc 0.860
+epoch  13  loss 0.835  train acc 0.929  val acc 0.928
+epoch  14  loss 0.811  train acc 0.934  val acc 0.906
+epoch  15  loss 0.799  train acc 0.948  val acc 0.910
+epoch  16  loss 0.796  train acc 0.941  val acc 0.910
+epoch  17  loss 0.780  train acc 0.941  val acc 0.928
+epoch  18  loss 0.771  train acc 0.955  val acc 0.910
+epoch  19  loss 0.773  train acc 0.945  val acc 0.938
+epoch  20  loss 0.768  train acc 0.937  val acc 0.900
+epoch  21  loss 0.757  train acc 0.966  val acc 0.946
+epoch  22  loss 0.746  train acc 0.963  val acc 0.965
+epoch  23  loss 0.728  train acc 0.962  val acc 0.920
+epoch  24  loss 0.741  train acc 0.964  val acc 0.932
+epoch  25  loss 0.740  train acc 0.957  val acc 0.941
+epoch  26  loss 0.730  train acc 0.964  val acc 0.937
+epoch  27  loss 0.717  train acc 0.964  val acc 0.907
+epoch  28  loss 0.716  train acc 0.970  val acc 0.922
+epoch  29  loss 0.718  train acc 0.975  val acc 0.968
+epoch  30  loss 0.706  train acc 0.968  val acc 0.937
+epoch  31  loss 0.699  train acc 0.947  val acc 0.913
+epoch  32  loss 0.694  train acc 0.967  val acc 0.943
+epoch  33  loss 0.688  train acc 0.968  val acc 0.912
+epoch  34  loss 0.685  train acc 0.981  val acc 0.956
+epoch  35  loss 0.680  train acc 0.977  val acc 0.938
+epoch  36  loss 0.680  train acc 0.975  val acc 0.940
+epoch  37  loss 0.675  train acc 0.979  val acc 0.928
+epoch  38  loss 0.686  train acc 0.982  val acc 0.959
+epoch  39  loss 0.673  train acc 0.983  val acc 0.941
+epoch  40  loss 0.667  train acc 0.980  val acc 0.934
+epoch  41  loss 0.662  train acc 0.986  val acc 0.934
+epoch  42  loss 0.660  train acc 0.986  val acc 0.954
+epoch  43  loss 0.652  train acc 0.985  val acc 0.938
+epoch  44  loss 0.652  train acc 0.982  val acc 0.925
+epoch  45  loss 0.649  train acc 0.989  val acc 0.944
+epoch  46  loss 0.644  train acc 0.992  val acc 0.948
+epoch  47  loss 0.645  train acc 0.989  val acc 0.943
+epoch  48  loss 0.636  train acc 0.989  val acc 0.963
+epoch  49  loss 0.634  train acc 0.992  val acc 0.948
+early stop
+
+best val acc 0.968 | TEST acc 0.853
+clean train by language: all 0.975
+clean val   by language: all 0.968
+clean test  by language: all 0.853
+STRESS test by language: all 0.840
+STRESS val  by language: all 0.948
+confused across languages (clean test): none
+              sad -> predicted wait            x9
+              yes -> predicted time            x8
+              sad -> predicted sleep           x8
+           please -> predicted hungry          x8
+             fine -> predicted time            x7
+            happy -> predicted thankyou        x7
+             wait -> predicted thankyou        x6
+           please -> predicted happy           x6
+W1117 19:38:17.153000 13084 Lib\site-packages\torch\onnx\_internal\exporter\_registration.py:107] torchvision is not installed. Skipping torchvision::nms
+W1117 19:38:17.155000 13084 Lib\site-packages\torch\onnx\_internal\exporter\_registration.py:107] torchvision is not installed. Skipping torchvision::roi_align
+W1117 19:38:17.156000 13084 Lib\site-packages\torch\onnx\_internal\exporter\_registration.py:107] torchvision is not installed. Skipping torchvision::roi_pool
+W1117 19:38:17.157000 13084 Lib\site-packages\torch\onnx\_internal\exporter\_registration.py:107] torchvision is not installed. Skipping torchvision::deform_conv2d
+saved conformer_best.pt, sign_conformer.onnx

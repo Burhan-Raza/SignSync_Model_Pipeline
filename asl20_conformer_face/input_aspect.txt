@@ -1,0 +1,3 @@
+0.88
+# width/height of the Kaggle asl-signs training videos, estimated from hand geometry.
+# live_predict.py rescales webcam x by (webcam width/height) / 0.88 so hands keep the training shape.

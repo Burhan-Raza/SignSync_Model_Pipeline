@@ -1,134 +1,88 @@
-# One model, two sign languages (8 PSL + 8 ASL = 16 classes)
+# SignSync: ASL sign recognition (20 signs)
+
+Recognizes 20 American Sign Language (ASL) signs from a webcam. MediaPipe Holistic gives hand, face and body
+landmarks for every frame, and a Conformer network classifies each sign.
+
+## The 20 ASL signs
+
+| | | | | |
+|---|---|---|---|---|
+| bye | callonphone | drink | fine | happy |
+| hello | home | hungry | no | please |
+| sad | see | sick | sleep | thankyou |
+| time | wait | water | where | yes |
+
+## Model used
+
+**Conformer with hand + face/body points** (folder [`asl20_conformer_face/`](asl20_conformer_face/RESULTS.md)).
+
+- **Input per frame:** both hands (2 x 21 points) and 13 face/body points: nose, eyes, ears, mouth corners,
+  shoulders, elbows, forehead and chin. Hand positions are measured relative to the face and shoulders, so the
+  model can tell where on the face or body a sign is made.
+- **Network:** 3 Conformer blocks (feed-forward, 4-head self-attention, depthwise convolution), width 128,
+  1.18 million parameters, 60 frames per sign. The idea comes from Haque et al., "A Signer-Invariant Conformer and
+  Multi-Scale Fusion Transformer for Continuous Sign Language Recognition" (ICCV 2025 Workshops); here a small
+  Conformer classifies single signs.
+- **Data:** Kaggle "Google - Isolated Sign Language Recognition" (asl-signs): all 7,597 recordings of these 20
+  signs, 6,679 kept after cleaning, from 21 signers.
+- **Split by signer:** 15 signers train (4,734 recordings), 2 val (679), 4 test (1,266). Nobody appears in two
+  splits, so the test measures accuracy on new people.
+
+## Results (4 test signers never seen in training)
+
+| Model | Input | Test accuracy |
+|---|---|---|
+| GRU | hands | 83.2% |
+| Conformer | hands | 85.2% |
+| **Conformer (final)** | **hands + face/body** | **85.3%** |
+
+Per signer, the final model scores 98%, 86%, 86% and 63%. Weakest signs: sad, fine, please, wait, happy.
+Only the final model is in this repository; the GRU and hands-only Conformer were trained on the same data and
+split for comparison. Details, per-sign numbers and limits: [asl20_conformer_face/RESULTS.md](asl20_conformer_face/RESULTS.md).
+
+## Run it on a webcam
+
 ```bash
-python prepare.py --root "$ROOT" --out data8.npz --eight
-python download_asl.py --signs yes where hungry sick time callonphone home see --max-per-sign 120 --convert
-python prepare_asl.py --asl asl_data --psl data8.npz --out psl_asl.npz
-python baseline_sklearn.py psl_asl.npz --train-on-all     # saves baseline_model.joblib
-python train_gru.py --data psl_asl.npz --epochs 60        # saves gru_best.pt, labels.json, sign_gru.onnx
-python live_baseline.py --lang psl                        # psl | asl | both (default both)
-python predict.py --seq-dir some/seq --lang asl
+pip install -r requirements.txt          # Python 3.10 (mediapipe 0.10.14)
+cd asl20_conformer_face
+python ../live_predict.py --hold 2
 ```
-Both scripts report test accuracy for all classes and separately for `psl_*` / `asl_*`. `--lang` zeroes the other
-language's probabilities and renormalizes; words are shown without the prefix.
-`train_gru.py` now trains from `X_raw` (`augment_raw` + random `mirror`, then `trim_active` + `normalize`, like `baseline_sklearn.py`).
 
----
+- Raise your hands and sign; the word shows while your hands are in the frame and clears when they leave.
+  `--hold 2` keeps it on screen for 2 seconds.
+- Keep your head and both shoulders in the frame.
+- Answers below 50% confidence are not shown; `--threshold 0` shows everything.
+- The webcam image is rescaled to the shape of the training videos (`input_aspect.txt`); `--no-aspect-fix`
+  turns this off.
+- `S` saves the last sign and prints the top 3 answers, `Q` quits.
 
-# ASL (Kaggle asl-signs) in the same format
+`live_predict.py` and `predict.py` load `sign_conformer.onnx` from the folder you run them in (otherwise
+`sign_gru.onnx`); `--model` picks a file.
 
-`convert_asl.py` turns Kaggle "Google - Isolated Sign Language Recognition" parquet files into the PSL layout
-(`<word>/<seq>/0..59.npy`, 126 numbers per frame, [left | right], missing hand = 0; face and pose are dropped).
-`prepare_asl.py` makes an .npz that `baseline_sklearn.py` / `train_gru.py` read unchanged, with a
-**signer-independent split** (whole participants held out for test). Add `--psl data8.npz` to train one model on both;
-labels become `psl_<word>` / `asl_<word>`.
-**Don't download the full 57 GB.** `download_asl.py` gets only the signs you need (~960 small files):
+## Rebuild the data and train
+
 ```bash
-pip install kaggle pandas pyarrow          # + kaggle.json token, + accept rules on the competition Data page
-python download_asl.py --list
-python download_asl.py --signs yes where hungry sick time callonphone home see --max-per-sign 120 --convert
+pip install kaggle pandas pyarrow        # kaggle.json in ~/.kaggle, competition rules accepted
+python download_asl.py --signs bye callonphone drink fine happy hello home hungry no please sad see sick sleep thankyou time wait water where yes --max-per-sign 1000
+python prepare_asl_body.py --out asl20_body.npz
+mkdir asl20_conformer_face && cd asl20_conformer_face
+python ../train_conformer.py --data ../asl20_body.npz --features body --epochs 80
 ```
-Or by hand, if you already have the full data:
-```bash
-pip install pandas pyarrow
-python convert_asl.py --kaggle asl-signs/ --list                                   # see the 250 signs
-python convert_asl.py --kaggle asl-signs/ --out asl_data --signs hello water bye thankyou --max-per-sign 120
-python prepare_asl.py --asl asl_data --out asl.npz                                 # ASL alone
-python prepare_asl.py --asl asl_data --psl data8.npz --out psl_asl.npz             # PSL + ASL together
-python baseline_sklearn.py psl_asl.npz
-```
-
----
-
-# Fix for live webcam (8 app signs) - read this first
-
-**Problem:** on the dataset's webcam test set, excuseme / have_a_good_day / goodbye are already 93-100%,
-but live in front of your own camera they turn into welldone / goodmorning. The model was fine on clean
-recordings and broke on live input, because the live input differed in four ways:
-1. selfie/mirror flip (`cv2.flip`) swaps the left/right hand slots and mirrors x;
-2. the live window doesn't start/end with the sign (idle frames, a sign that gets cut off);
-3. signing speed is different from the 60-frame recordings;
-4. camera framing / distance is different (absolute wrist position is a feature).
-
-**What changed**
-- `common.py`: `trim_active` (cut empty start/end + resample to 60), `fill_gaps`, `mirror`, `augment_raw`, `EIGHT_SIGNS`.
-- `prepare.py`: trims every sequence, saves `X_raw` too, `--eight` shortcut, `--extra-root` for your own recordings.
-- `baseline_sklearn.py`: trains on mirrored + shifted/zoomed/speed-changed copies, better features,
-  prints a **stress (live-like) test** next to the clean test, saves `baseline_model.joblib`.
-- `live_baseline.py` (new): webcam / video / folder prediction using the exact same preprocessing,
-  "not sure" threshold, and `--collect` to record your own samples.
-
-**Run**
-```bash
-python prepare.py --root "$ROOT" --out data8.npz --eight
-python baseline_sklearn.py data8.npz                       # compare: add --aug 0 for the old behaviour
-python live_baseline.py                                    # SPACE = record one sign, q = quit
-```
-Live tips: hands down (out of frame) between signs, perform the whole sign, normal speed.
-
-**Training data:** every model here (baseline and GRU) is trained ONLY on PakistanSignLanguageDatasetV2. No manual recording is needed.
-`data8.npz` and `baseline_model.joblib` in this folder are already built from the dataset (all 3 cameras).
-
-**Optional (not needed, not used by default):** record your own samples and add them to training:
-```bash
-python live_baseline.py --collect excuseme --save-dir my_data      # SPACE x 20, repeat for each word
-python prepare.py --root "$ROOT" --out data8.npz --eight --extra-root my_data
-python baseline_sklearn.py data8.npz --train-on-all
-```
-
----
-
-# SignSync AI — PSL recognition pipeline (Steps 2–5)
-
-## What's in your archive
-`PakistanSignLanguageDatasetV2` doesn't contain videos. It holds **landmarks that were already extracted with MediaPipe**:
-
-```
-<source>/<word>/<sequence>/<frame>.npy     source = laptop_data | mobile_data | webcam_data
-each frame = 126 numbers = 2 hands × 21 points × (x, y, z)   [left hand | right hand], missing hand = 0
-each sequence = 60 frames
-```
-- 3 sources, about 6,900 usable sequences in total, 71 words (the `links_to_words_final.txt` file maps each word to its psl.org.pk dictionary page)
-- Junk folders to ignore: `s`, `test_word`, `test2`. A few sequences are shorter than 60 frames.
-- 10 words don't appear in the webcam source and get dropped from the cross-camera test: bird, come, doctor, give, help, hungry, need, want, where, who. `nothing` also gets dropped because it has too few clean samples.
-
-## Run order
-```bash
-# Python 3.10/3.11 recommended (needed for mediapipe 0.10.14)
-pip install -r requirements.txt
-ROOT="<path>/PakistanSignLanguageDatasetV2/PakistanSignLanguageDatasetV2"
-
-python prepare.py --root "$ROOT" --out pilot5.npz --words hello water bring fan you   # Step 2 pilot
-python prepare.py --root "$ROOT" --out data_prepared.npz                              # Step 4 full
-python baseline_sklearn.py data_prepared.npz                                          # baseline
-python train_gru.py --data data_prepared.npz                                          # Step 5 (GRU, use Colab GPU if slow)
-python predict.py --video my_sign.mp4                                                 # inference
-python extract_landmarks.py --video-dir videos/ --out new_data/                       # Step 3 for new PSL/ASL videos
-```
-
-## Results so far (baseline, ExtraTrees on summary features)
-| Split | Test accuracy |
-|---|---|
-| 5-sign pilot, cross-camera | 100% |
-| 61 words, **train laptop+mobile → test webcam** | **90.7%** |
-| 61 words, random 70/15/15 | 99.4% |
-
-**Important for your thesis:** the dataset has no signer IDs, so a true signer-wise split isn't possible.
-The random split gives 99%, but near-identical recordings land in both train and test, so that number
-is inflated. Report the **cross-camera (webcam held-out)** number as your main result. The weakest words
-are toothpaste/toothbrush (very similar signs), garden, all, you, and shower. These are good targets for the GRU and augmentation.
+Kaggle limits per-file downloads (HTTP 429 after a few hundred files). Re-running `download_asl.py` continues
+where it stopped; for this project the files were zipped by a private Kaggle notebook and downloaded as one file.
 
 ## Files
-- `common.py`: loading (frames sorted numerically, so 0,1,2…10 rather than 0,1,10), normalization (wrist-relative + scale, plus the wrist position in the image)
-- `prepare.py`: cleaning, labels, splits → `.npz`
-- `baseline_sklearn.py`: quick classical baseline
-- `train_gru.py`: bidirectional GRU + augmentation, early stopping, exports `sign_gru.onnx` + `labels.json`
-- `predict.py`: video/sequence → top-3 words (this is the function your FastAPI endpoint should call)
-- `live_predict.py`: webcam prediction; smooths recent outputs and waits for a stable two-of-three vote before showing a sign
-- `extract_landmarks.py`: MediaPipe Holistic → the dataset's exact format (60 × 126). Use it for new PSL dictionary videos, ASL, or webcam recordings.
 
-## Notes / checks
-- **Hand order:** the dataset matches Holistic's `[left_hand, right_hand]` (no mirror flip). Right-handed signs land in slot 2.
-  Check one of your own videos with `--verify-against <dataset seq folder>`. If the slots come out reversed, swap them.
-- If your app shows a mirrored selfie preview, still send the **un-mirrored** frames to MediaPipe.
-- Untested here: `train_gru.py`, `predict.py` and real MediaPipe extraction (PyTorch/MediaPipe couldn't be installed in my environment).
-  The data pipeline and baseline actually ran, and the extraction output format was checked against the dataset.
+| File | What it does |
+|---|---|
+| `live_predict.py` | Webcam recognition (one answer per sign) |
+| `predict.py` | Predict one recorded sign (`--seq-dir`) |
+| `body.py` | Face/body points: reading, trimming, mirroring, augmentation, features |
+| `common.py` | Hand landmark helpers (normalize, trim, mirror, augmentation) |
+| `train_conformer.py` | Train the Conformer (`--features hands` or `body`) |
+| `train_gru.py` | Train the GRU (comparison model) |
+| `download_asl.py`, `convert_asl.py`, `prepare_asl.py` | Download and convert Kaggle asl-signs (hands only) |
+| `prepare_asl_body.py` | Build the hands + face/body dataset |
+| `extract_landmarks.py` | MediaPipe Holistic landmark extraction |
+| `live_baseline.py`, `baseline_sklearn.py` | Classical (scikit-learn) baseline and sample recording (`--collect`) |
+| `asl20_conformer_face/` | **Final model** |

@@ -11,16 +11,29 @@ import os
 import numpy as np
 import onnxruntime as ort
 from common import normalize, trim_active, restrict_lang, strip_lang
+from body import normalize_body, trim_body, FEAT_DIM, RAW_DIM
 
 
-def load_model(onnx_path="sign_gru.onnx", labels_path="labels.json"):
-    return ort.InferenceSession(onnx_path), json.load(open(labels_path))
+def default_model_path(folder="."):
+    """The model in this folder: the Conformer if there is one, otherwise the GRU."""
+    conformer = os.path.join(folder, "sign_conformer.onnx")
+    return conformer if os.path.exists(conformer) else os.path.join(folder, "sign_gru.onnx")
+
+
+def load_model(onnx_path=None, labels_path="labels.json"):
+    return ort.InferenceSession(onnx_path or default_model_path()), json.load(open(labels_path))
 
 
 def predict(seq_126, sess, labels, top=3, lang="both"):
     """seq_126: raw (60, 126) landmarks in dataset format -> [(word, prob), ...]
     lang psl/asl: only that language's classes can win. Words come back without the prefix."""
-    x = normalize(trim_active(np.asarray(seq_126, dtype=np.float32)))[None].astype(np.float32)
+    seq = np.asarray(seq_126, dtype=np.float32)
+    if sess.get_inputs()[0].shape[-1] == FEAT_DIM:            # model with face/body points (body.py)
+        if seq.shape[1] != RAW_DIM:
+            raise ValueError(f"this model needs {RAW_DIM} numbers per frame (hands + face/body points), got {seq.shape[1]}")
+        x = normalize_body(trim_body(seq))[None].astype(np.float32)
+    else:
+        x = normalize(trim_active(seq))[None].astype(np.float32)
     logits = sess.run(None, {"landmarks": x})[0][0]
     p = np.exp(logits - logits.max()); p /= p.sum()
     names = [labels[str(i)] for i in range(len(p))]
@@ -35,12 +48,13 @@ if __name__ == "__main__":
     g.add_argument("--video"); g.add_argument("--seq-dir")
     ap.add_argument("--lang", choices=["psl", "asl", "both"], default="both",
                     help="which sign language may be predicted (same single model)")
+    ap.add_argument("--model", help="ONNX file (default: sign_conformer.onnx if present, else sign_gru.onnx)")
     a = ap.parse_args()
     if a.video:
         from extract_landmarks import _holistic, read_frames, extract_from_frames
         seq = extract_from_frames(read_frames(a.video), _holistic())
     else:
         seq = np.stack([np.load(os.path.join(a.seq_dir, f"{i}.npy")) for i in range(60)])
-    sess, labels = load_model()
+    sess, labels = load_model(a.model)
     for w, p in predict(seq, sess, labels, lang=a.lang):
         print(f"{w:20s} {p:.1%}")

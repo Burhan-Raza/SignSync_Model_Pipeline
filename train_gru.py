@@ -17,7 +17,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-from common import normalize, trim_active, mirror, augment_raw, lang_accuracy, cross_language_confusions
+from common import normalize, trim_active, mirror, augment_raw, augment_strong, lang_accuracy, cross_language_confusions
+
+AUGMENT = {"standard": augment_raw, "strong": augment_strong}
 
 
 class SignGRU(nn.Module):
@@ -39,11 +41,11 @@ def prep_raw(raws):
     return np.stack([normalize(trim_active(r)) for r in raws]).astype(np.float32)
 
 
-def augment_raw_batch(raws, rng, mirror_p=0.5):
+def augment_raw_batch(raws, rng, mirror_p=0.5, aug=augment_raw):
     """Random live-like copy of each raw sequence (half of them mirrored), ready for the model."""
     out = []
     for r in raws:
-        v = augment_raw(r, rng)
+        v = aug(r, rng)
         out.append(mirror(v) if rng.random() < mirror_p else v)
     return prep_raw(out)
 
@@ -77,14 +79,18 @@ def main():
     ap.add_argument("--batch", type=int, default=64)
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--patience", type=int, default=15)
+    ap.add_argument("--seed", type=int, default=0, help="change to check how much results vary between runs")
+    ap.add_argument("--aug", choices=list(AUGMENT), default="standard",
+                    help="training augmentation; 'strong' adds per-hand rotation/size and hand-shape changes")
+    ap.add_argument("--dropout", type=float, default=0.3)
     a = ap.parse_args()
-    torch.manual_seed(0); np.random.seed(0)
+    torch.manual_seed(a.seed); np.random.seed(a.seed)
 
     d = np.load(a.data)
     if "X_raw" not in d:
         raise SystemExit("This .npz was made by the old prepare.py - re-run prepare.py to get X_raw.")
     R, y, split, words = d["X_raw"].astype(np.float32), d["y"].astype(np.int64), d["split"], d["words"]
-    rng = np.random.default_rng(0)
+    rng = np.random.default_rng(a.seed)
     mk = lambda x, s, sh: DataLoader(TensorDataset(torch.from_numpy(x), torch.from_numpy(y[split == s])),
                                      batch_size=a.batch, shuffle=sh)
     tr = mk(R[split == "train"], "train", True)              # raw: prepared fresh for every batch
@@ -97,7 +103,8 @@ def main():
     print(f"train {len(tr.dataset)}  val {len(va.dataset)}  test {len(te.dataset)}", flush=True)
 
     n_feat = va.dataset[0][0].shape[1]
-    model = SignGRU(n_feat, len(words))
+    model = SignGRU(n_feat, len(words), dropout=a.dropout)
+    print(f"augmentation {a.aug} | dropout {a.dropout}", flush=True)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=1e-3)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, a.epochs)
     lossf = nn.CrossEntropyLoss(label_smoothing=0.1)
@@ -107,7 +114,7 @@ def main():
         model.train()
         tot = 0.0
         for rb, yb in tr:
-            xb = torch.from_numpy(augment_raw_batch(rb.numpy(), rng))
+            xb = torch.from_numpy(augment_raw_batch(rb.numpy(), rng, aug=AUGMENT[a.aug]))
             opt.zero_grad()
             loss = lossf(model(xb), yb)
             loss.backward()
